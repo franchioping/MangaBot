@@ -80,4 +80,4 @@ class MangaHandler:
 
 if __name__ == "__main__":
     mh = MangaHandler()
-    print(mh.search("Release That Witch")[0])
+    print(mh.search("Release That Witch")[0].get_latest_chap().get_chapter_num())
