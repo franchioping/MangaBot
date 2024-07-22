@@ -48,7 +48,7 @@ class Manga:
         self.data = r.json()["data"]
 
     def get_title(self) -> str:
-        return self.data["attributes"]["title"]
+        return self.data["attributes"]["title"]["en"]
 
     def get_latest_chap(self) -> Chapter:
         return Chapter(self.data["attributes"]["latestUploadedChapter"])

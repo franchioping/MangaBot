@@ -4,6 +4,12 @@ from discord import app_commands
 
 from dotenv import load_dotenv
 
+import embed_util
+import manga
+
+
+mh = manga.MangaHandler()
+
 load_dotenv()
 
 
@@ -26,13 +32,21 @@ async def first_command(interaction: discord.Interaction):
     guild=discord.Object(id=1042133536926347324)
 )
 @app_commands.describe(title='Title of the manga to search for')
-async def first_command(
+async def search_command(
         interaction: discord.Interaction,
         title: str
 ):
     await interaction.response.send_message("Check your DM's")
     chanel = await interaction.user.create_dm()
+
+    manga_list = mh.search(title)
+    view = embed_util.ListManga(manga_list)
     await chanel.send(f"Hey, you searched for {title}")
+    await chanel.send(view=view, embed=embed_util.manga_embed(manga_list[0]))
+    await view.wait()
+    await chanel.send("Done")
+
+
 
 
 @client.event
