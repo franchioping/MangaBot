@@ -19,12 +19,15 @@ class MangaWrapper:
     def search(self, title: str, limit: int = 10) -> list[md.series.Manga]:
         return self.manga.get_manga_list(title=title)
 
-    def get_chapters(self, manga_to_get: md.series.Manga):
-        return self.chapter.get_chapter_list(manga=manga_to_get.manga_id)
+    def get_latest_chapter(self, manga_to_get: md.series.Manga) -> int:
+        manga_feed = self.manga.manga_feed(manga_id=manga_to_get.manga_id)
+        print(manga_feed[0].chapter)
+
+
 
 
 if __name__ == "__main__":
     mw = MangaWrapper()
-    manga = mw.search("I Turned off the Pain Perception Setting!")[0]
-    chaps = mw.get_chapters(manga)
-    print(chaps)
+    manga = mw.search("Release That Witch")[0]
+    print(manga.title)
+    mw.get_latest_chapter(manga)
