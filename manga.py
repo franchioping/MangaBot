@@ -19,10 +19,12 @@ class MangaWrapper:
     def search(self, title: str, limit: int = 10) -> list[md.series.Manga]:
         return self.manga.get_manga_list(title=title)
 
-    def get_chapters(self, manga: md.series.Manga):
-        return self.chapter.get_manga_volumes_and_chapters(manga_id=manga.manga_id)
+    def get_chapters(self, manga_to_get: md.series.Manga):
+        return self.chapter.get_chapter_list(manga=manga_to_get.manga_id)
 
 
 if __name__ == "__main__":
     mw = MangaWrapper()
-    print(mw.search("I Turned off the Pain Perception Setting!")[0])
+    manga = mw.search("I Turned off the Pain Perception Setting!")[0]
+    chaps = mw.get_chapters(manga)
+    print(chaps)
