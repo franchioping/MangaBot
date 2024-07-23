@@ -11,11 +11,15 @@ class ListManga(discord.ui.View):
         self.ret = []
         self.index = 0
         self.manga_list = manga_list
+        self.manga_files = gen_manga_files(self.manga_list)
+        self.msg = None
 
     async def print_manga(self, interaction: discord.Interaction):
         await interaction.response.defer()
-        await interaction.message.edit(
-            embed=manga_embed(self.manga_list[self.index]))
+        await self.msg.edit(
+            embed=manga_embed(self.manga_list[self.index]),
+            attachments=[self.manga_files[self.index]]
+        )
 
     @discord.ui.button(label='Prev', style=discord.ButtonStyle.grey)
     async def previous(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -50,9 +54,9 @@ class ListManga(discord.ui.View):
         self.stop()
 
 
-def gen_manga_files(mangaList: list[Manga]):
+def gen_manga_files(manga_list: list[Manga]):
     ret = []
-    for manga in mangaList:
+    for manga in manga_list:
         if not os.path.isfile(f'tmp/{manga.id}.jpg'):
             img_data = requests.get(manga.get_cover_art_url()).content
             with open(f'tmp/{manga.id}.jpg', 'wb') as handler:
