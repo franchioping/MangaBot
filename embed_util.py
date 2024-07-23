@@ -3,6 +3,7 @@ import discord
 import os.path
 
 import requests
+from util import parallel_downloads
 
 
 class ListManga(discord.ui.View):
@@ -12,11 +13,16 @@ class ListManga(discord.ui.View):
         self.index = 0
         self.manga_list = manga_list
         self.manga_files = gen_manga_files(self.manga_list)
-        self.msg = None
+
+    async def force_reload(self, msg: discord.Message):
+        await msg.edit(
+            embed=manga_embed(self.manga_list[self.index]),
+            attachments=[self.manga_files[self.index]]
+        )
 
     async def print_manga(self, interaction: discord.Interaction):
         await interaction.response.defer()
-        await self.msg.edit(
+        await interaction.message.edit(
             embed=manga_embed(self.manga_list[self.index]),
             attachments=[self.manga_files[self.index]]
         )
@@ -55,19 +61,13 @@ class ListManga(discord.ui.View):
 
 
 def gen_manga_files(manga_list: list[Manga]):
-    ret = []
-    for manga in manga_list:
-        if not os.path.isfile(f'tmp/{manga.id}.jpg'):
-            img_data = requests.get(manga.get_cover_art_url()).content
-            with open(f'tmp/{manga.id}.jpg', 'wb') as handler:
-                handler.write(img_data)
-        ret.append(discord.File(f"tmp/{manga.id}.jpg", f"{manga.id}.jpg"))
-    return ret
+
+    return parallel_downloads.parallel_download(manga_list)
 
 
 def manga_embed(manga: Manga):
     e = discord.Embed(title=manga.get_title(), description=manga.get_description(), url=manga.get_url())
-
-    e.set_thumbnail(url=f"attachment://{manga.id}.jpg")
+    extension = manga.get_cover_art_extension()
+    e.set_thumbnail(url=f"attachment://{manga.id}.{extension}")
 
     return e

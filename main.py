@@ -43,8 +43,9 @@ async def search_command(
     view = embed_util.ListManga(manga_list)
     await chanel.send(f"Hey, you searched for {title}")
     msg = await chanel.send(view=view, embed=embed_util.manga_embed(manga_list[0]))
-    view.msg = msg
-    await view.wait()
+    await view.force_reload(msg)
+    ret = await view.wait()
+    print(ret)
     await chanel.send("Done")
 
 
