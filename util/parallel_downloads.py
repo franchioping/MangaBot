@@ -16,8 +16,9 @@ def download_file(manga: Manga):
     return discord.File(f"tmp/{manga.id}.{extension}", f"{manga.id}.{extension}")
 
 def parallel_download(manga_list: list[Manga]) -> list[discord.File]:
+    print("Downloading Images...")
     with concurrent.futures.ThreadPoolExecutor() as exector:
         result = exector.map(download_file, manga_list)
-
+    print("Images Finished Downloading")
     return list(result)
 

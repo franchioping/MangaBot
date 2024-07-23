@@ -124,4 +124,4 @@ class MangaHandler:
 
 if __name__ == "__main__":
     mh = MangaHandler()
-    print(mh.search("Release That Witch")[0].get_url())
+    print(mh.search("Umineko no Naku Koro ni Episode 4: Alliance of the Golden Witch")[0].data)

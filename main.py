@@ -39,23 +39,27 @@ async def search_command(
         interaction: discord.Interaction,
         title: str
 ):
+
+
     await interaction.response.send_message("Check your DM's")
     chanel = await interaction.user.create_dm()
 
     manga_list = mh.search(title)
     view = embed_util.ListManga(manga_list)
-    await chanel.send(f"Hey, you searched for {title}")
     msg = await chanel.send(view=view, embed=embed_util.manga_embed(manga_list[0]))
     await view.force_reload(msg)
     await view.wait()
 
+    print("Done.. Checking Returns")
     ret: list[dict] = view.ret
     for action in ret:
         if action["action"] == 1:
             manga_id = action["manga"]
+            print(f"Userid {interaction.user.id} added mangaid {manga_id}")
             man.add_user_to_manga(interaction.user, manga_api.Manga(manga_id))
         if action["action"] == -1:
             manga_id = action["manga"]
+            print(f"Userid {interaction.user.id} removed mangaid {manga_id}")
             man.remove_user_from_manga(interaction.user, manga_api.Manga(manga_id))
 
 

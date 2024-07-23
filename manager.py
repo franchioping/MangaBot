@@ -1,7 +1,11 @@
 import discord
+import json
 
 import embed_util
 import manga_api
+
+_manager = None
+
 
 class Manager:
     def __init__(self, client):
@@ -27,8 +31,10 @@ class Manager:
             new_chap = self.check_for_new_chapter(manga)
             if new_chap is not None:
                 users = self.manga[manga_id]
-                for user in users:
-                    await self.send_message_to_user(self.client.get_user(user), manga, new_chap)
+                print(users)
+                for userid in users:
+                    await self.send_message_to_user(await self.client.fetch_user(userid), manga, new_chap)
+        self.save()
 
     def check_for_new_chapter(self, manga: manga_api.Manga) -> manga_api.Chapter | None:
         latest_chap = manga.get_latest_chap()
@@ -41,6 +47,17 @@ class Manager:
         else:
             return None
 
-    async def send_message_to_user(self, user: discord.User, manga: manga_api.Manga, chapter: manga_api.Chapter) -> None:
+    async def send_message_to_user(self, user: discord.User, manga: manga_api.Manga,
+                                   chapter: manga_api.Chapter) -> None:
         dm_channel = await user.create_dm()
         await dm_channel.send(embed=embed_util.chapter_embed(manga, chapter), files=embed_util.get_chapter_files(manga))
+
+    def save(self):
+        with open("manager.json", "w") as f:
+            json.dump(self.to_dict(), f)
+
+    def to_dict(self):
+        return {
+            "manga": self.manga,
+            "chapters": self.chapters
+        }
