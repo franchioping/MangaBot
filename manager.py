@@ -1,0 +1,39 @@
+import discord
+
+import embed_util
+import manga_api
+
+class Manager:
+    def __init__(self):
+        self.manga = {}
+        self.chapters = {}
+
+    def add_user_to_manga(self, user: discord.User, manga: manga_api.Manga) -> None:
+        self.manga[manga.id].append(user.id)
+
+    def remove_user_from_manga(self, user: discord.User, manga: manga_api.Manga) -> None:
+        self.manga[manga.id].remove(user.id)
+
+    async def update(self):
+        for manga_id in self.manga.keys():
+            manga = manga_api.Manga(manga_id)
+            new_chap = self.check_for_new_chapter(manga)
+            if new_chap is not None:
+                users = self.manga[manga_id]
+                for user in users:
+                    await self.send_message_to_user(user, manga, new_chap)
+
+    def check_for_new_chapter(self, manga: manga_api.Manga) -> manga_api.Chapter | None:
+        latest_chap = manga.get_latest_chap()
+        if latest_chap not in self.chapters.keys():
+            self.chapters[manga.id] = latest_chap
+            return latest_chap
+        if float(latest_chap.get_chapter_num()) > self.chapters[manga.id]:
+            self.chapters[manga.id] = latest_chap
+            return latest_chap
+        else:
+            return None
+
+    async def send_message_to_user(self, user: discord.User, manga: manga_api.Manga, chapter: manga_api.Chapter) -> None:
+        dm_channel = await user.create_dm()
+        await dm_channel.send(embed=embed_util.chapter_embed(manga, chapter), files=embed_util.get_chapter_files(manga))

@@ -1,4 +1,4 @@
-from manga import Manga, Chapter
+from manga_api import Manga, Chapter
 import discord
 import os.path
 
@@ -61,7 +61,6 @@ class ListManga(discord.ui.View):
 
 
 def gen_manga_files(manga_list: list[Manga]):
-
     return parallel_downloads.parallel_download(manga_list)
 
 
@@ -71,3 +70,16 @@ def manga_embed(manga: Manga):
     e.set_thumbnail(url=f"attachment://{manga.id}.{extension}")
 
     return e
+
+
+def get_chapter_files(manga: Manga):
+    return parallel_downloads.parallel_download([manga])
+
+
+def chapter_embed(manga: Manga, chapter: Chapter):
+    e = discord.Embed(
+        title=f'New "{manga.get_title()}" Chapter Released!',
+        description=f"Chapter {chapter.get_chapter_num()} of {manga.get_title()} Released."
+                    f"Go read it now!"
+    )
+    e.set_thumbnail(url=f"attachment://{manga.id}.{manga.get_cover_art_extension()}")

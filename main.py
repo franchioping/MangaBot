@@ -5,9 +5,11 @@ from discord import app_commands
 from dotenv import load_dotenv
 
 import embed_util
-import manga
+import manager
+import manga_api
 
-mh = manga.MangaHandler()
+mh = manga_api.MangaHandler()
+man = manager.Manager()
 
 load_dotenv()
 
@@ -44,9 +46,20 @@ async def search_command(
     await chanel.send(f"Hey, you searched for {title}")
     msg = await chanel.send(view=view, embed=embed_util.manga_embed(manga_list[0]))
     await view.force_reload(msg)
-    ret = await view.wait()
-    print(ret)
+    await view.wait()
+
+    ret: list[dict] = view.ret
+    for action in ret:
+        if action["action"] == 1:
+            manga_id = action["manga"]
+            man.add_user_to_manga(interaction.user, manga_api.Manga(manga_id))
+        if action["action"] == -1:
+            manga_id = action["manga"]
+            man.remove_user_from_manga(interaction.user, manga_api.Manga(manga_id))
+
+
     await chanel.send("Done")
+    await man.update()
 
 
 @client.event

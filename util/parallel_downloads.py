@@ -4,7 +4,7 @@ import os.path
 
 
 import discord
-from manga import Manga
+from manga_api import Manga
 
 
 def download_file(manga: Manga):
