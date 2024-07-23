@@ -7,15 +7,14 @@ from dotenv import load_dotenv
 import embed_util
 import manga
 
-
 mh = manga.MangaHandler()
 
 load_dotenv()
 
-
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
+
 
 @tree.command(
     name="ping",
@@ -25,6 +24,7 @@ tree = app_commands.CommandTree(client)
 async def first_command(interaction: discord.Interaction):
     chanel = await interaction.user.create_dm()
     await chanel.send("Hi")
+
 
 @tree.command(
     name="search",
@@ -42,21 +42,10 @@ async def search_command(
     manga_list = mh.search(title)
     view = embed_util.ListManga(manga_list)
     await chanel.send(f"Hey, you searched for {title}")
-    await chanel.send(view=view, embed=embed_util.manga_embed(manga_list[0]))
+    await chanel.send(view=view, embed=embed_util.manga_embed(manga_list[0]), files=embed_util.gen_manga_files(manga_list))
     await view.wait()
     await chanel.send("Done")
 
-
-
-
-@client.event
-async def on_message(message: discord.Message):
-    if isinstance(message.channel, discord.DMChannel):
-        user = message.author
-        channel = message.channel
-
-
-    
 
 @client.event
 async def on_ready():

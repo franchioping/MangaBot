@@ -48,7 +48,10 @@ class Manga:
         self.data = r.json()["data"]
 
     def get_title(self) -> str:
-        return self.data["attributes"]["title"]["en"]
+        try:
+            return self.data["attributes"]["title"]["en"]
+        except KeyError:
+            return self.data["attributes"]["title"][0]
 
     def get_latest_chap(self) -> Chapter:
         return Chapter(self.data["attributes"]["latestUploadedChapter"])
@@ -63,14 +66,17 @@ class Manga:
 
         r = requests.get(f"{self.base_url}/cover/{cover_art_id}")
         print( r.json()["data"])
-        cover_id = r.json()["data"]["attributes"]["fileName"]
-        return f"https://mangadex.org/covers/{self.id}/{cover_id}"
+        cover_fileName = r.json()["data"]["attributes"]["fileName"]
+        cover_extension = cover_fileName.split(".")[1]
+        return f"https://mangadex.org/covers/{self.id}/{cover_fileName}.256.{cover_extension}"
 
     def get_description(self) -> str:
         if "en" in self.data["attributes"]["description"].keys():
             return self.data["attributes"]["description"]["en"]
         else:
-            return self.data["attributes"]["description"][self.data["attributes"]["description"].keys()[0]]
+            if list(self.data["attributes"]["description"].keys()) > 0:
+                return self.data["attributes"]["description"][list(self.data["attributes"]["description"].keys())[0]]
+            return ""
 
     def get_url(self) -> str:
         return f"https://mangadex.org/title/{self.id}"
