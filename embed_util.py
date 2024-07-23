@@ -44,12 +44,12 @@ class ListManga(discord.ui.View):
     @discord.ui.button(label='Add', style=discord.ButtonStyle.green)
     async def add(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
-        self.ret.append({"manga": self.manga_list[self.index], "action": 1})
+        self.ret.append({"manga": self.manga_list[self.index].id, "action": 1})
 
     @discord.ui.button(label='Remove', style=discord.ButtonStyle.red)
     async def remove(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
-        self.ret.append({"manga": self.manga_list[self.index], "action": -1})
+        self.ret.append({"manga": self.manga_list[self.index].id, "action": -1})
 
     @discord.ui.button(label='Done', style=discord.ButtonStyle.blurple)
     async def exit(self, interaction: discord.Interaction, button: discord.ui.Button):

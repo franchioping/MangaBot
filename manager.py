@@ -4,15 +4,22 @@ import embed_util
 import manga_api
 
 class Manager:
-    def __init__(self):
+    def __init__(self, client):
+        self.client: discord.Client = client
         self.manga = {}
         self.chapters = {}
 
     def add_user_to_manga(self, user: discord.User, manga: manga_api.Manga) -> None:
-        self.manga[manga.id].append(user.id)
+        if manga.id in self.manga.keys():
+            self.manga[manga.id].append(user.id)
+        else:
+            self.manga[manga.id] = [user.id]
 
     def remove_user_from_manga(self, user: discord.User, manga: manga_api.Manga) -> None:
-        self.manga[manga.id].remove(user.id)
+        if manga.id in self.manga.keys():
+            self.manga[manga.id].remove(user.id)
+        else:
+            self.manga[manga.id] = []
 
     async def update(self):
         for manga_id in self.manga.keys():
@@ -21,7 +28,7 @@ class Manager:
             if new_chap is not None:
                 users = self.manga[manga_id]
                 for user in users:
-                    await self.send_message_to_user(user, manga, new_chap)
+                    await self.send_message_to_user(self.client.get_user(user), manga, new_chap)
 
     def check_for_new_chapter(self, manga: manga_api.Manga) -> manga_api.Chapter | None:
         latest_chap = manga.get_latest_chap()

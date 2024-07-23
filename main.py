@@ -9,13 +9,14 @@ import manager
 import manga_api
 
 mh = manga_api.MangaHandler()
-man = manager.Manager()
 
 load_dotenv()
 
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
+
+man = manager.Manager(client)
 
 
 @tree.command(
