@@ -27,6 +27,7 @@ class ListManga(discord.ui.View):
             attachments=[self.manga_files[self.index]]
         )
 
+
     @discord.ui.button(label='Prev', style=discord.ButtonStyle.grey)
     async def previous(self, interaction: discord.Interaction, button: discord.ui.Button):
         if self.index > 0:
@@ -36,7 +37,7 @@ class ListManga(discord.ui.View):
 
     @discord.ui.button(label='Next', style=discord.ButtonStyle.grey)
     async def next(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if self.index < len(self.manga_list):
+        if self.index < len(self.manga_list) - 1:
             self.index += 1
 
         await self.print_manga(interaction)
@@ -77,9 +78,11 @@ def get_chapter_files(manga: Manga):
 
 
 def chapter_embed(manga: Manga, chapter: Chapter):
+    volume_info = f"Volume {chapter.get_volume()}" if chapter.get_volume() else ""
+    chapter_title = f"{chapter.get_title()}" if chapter.get_title() else ""
     e = discord.Embed(
-        title=f'New "{manga.get_title()}" Chapter Released!',
-        description=f"Chapter {chapter.get_number()} of {manga.get_title()} Released."
+        title=f'"{manga.get_title()}" Chapter {chapter_title} Released!',
+        description=f"{volume_info} Chapter {chapter.get_number()} of {manga.get_title()} Released."
                     f"\nGo read it now!",
         url=chapter.get_url()
     )

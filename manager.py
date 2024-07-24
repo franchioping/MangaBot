@@ -14,6 +14,8 @@ class Manager:
         self.chapters = {}
         self.savefile = savefile
 
+        self.load()
+
     def get_user_mangas(self, user: discord.User) -> list[manga_api.Manga]:
         manga_ids = []
 
@@ -48,13 +50,22 @@ class Manager:
 
     def check_for_new_chapter(self, manga: manga_api.Manga) -> manga_api.Chapter | None:
         latest_chap = manga.get_latest_chap()
-        if latest_chap not in self.chapters.keys():
+        print("Comparing Chapters...")
+
+        if manga.id not in self.chapters.keys():
             self.chapters[manga.id] = latest_chap.id
             return latest_chap
-        if latest_chap.is_more_recent_than(manga_api.Chapter(self.chapters[manga.id])):
+        old_chap = manga_api.Chapter(self.chapters[manga.id])
+
+        print(f"Latest Chap ID: {latest_chap.id}, Old Chap ID: {self.chapters[manga.id]}")
+        print(f"Latest Chap: {latest_chap.get_volume()}:{latest_chap.get_number()}")
+        print(f"Latest Chap: {old_chap.get_volume()}:{old_chap.get_number()}")
+        if latest_chap.is_more_recent_than(old_chap):
             self.chapters[manga.id] = latest_chap.id
+            print("New Latest Chap!")
             return latest_chap
         else:
+            print("No New Chapter.")
             return None
 
     async def send_message_to_user(self, user: discord.User, manga: manga_api.Manga,

@@ -26,6 +26,9 @@ class Chapter:
             return float(self.get_volume()) > float(chapter.get_volume())
         return float(self.get_number()) > float(chapter.get_number())
 
+    def get_title(self) -> str | None:
+        return self.data["attributes"]["title"] if self.data["attributes"]["title"] else None
+
     def get_volume(self) -> str:
         return self.data["attributes"]["volume"]
 
@@ -81,8 +84,6 @@ class Manga:
             f"=desc",
 
         )
-        print(r.request.__dict__)
-        print(r.json())
         if r.json()["total"] == 0:
             r = requests.get(
                 f"{self.base_url}/chapter?manga={self.id}&translatedLanguage%5B%5D=en&contentRating%5B%5D=safe"
@@ -157,4 +158,4 @@ class MangaHandler:
 
 if __name__ == "__main__":
     mh = MangaHandler()
-    print(mh.search("Umineko no Naku Koro ni Episode 4: Alliance of the Golden Witch")[0])
+    print(mh.search("Umineko no Naku Koro ni Episode 4: Alliance of the Golden Witch")[0].get_latest_chap().data)
