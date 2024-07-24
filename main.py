@@ -31,7 +31,7 @@ async def first_command(interaction: discord.Interaction):
 
 
 async def render_manga_list_in_dm(interaction: discord.Interaction, manga_list: list[manga_api.Manga]):
-    await interaction.followup.send("Check your DM's")
+    await interaction.followup.send("Search done, Check your DM's")
     chanel = await interaction.user.create_dm()
 
     if len(manga_list) == 0:
@@ -55,7 +55,7 @@ async def render_manga_list_in_dm(interaction: discord.Interaction, manga_list: 
             print(f"Userid {interaction.user.id} removed mangaid {manga_id}")
             man.remove_user_from_manga(interaction.user, manga_api.Manga(manga_id))
 
-    await chanel.send("Done")
+    await msg.delete()
     await man.update()
 
 
