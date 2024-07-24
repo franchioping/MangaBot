@@ -76,7 +76,7 @@ class Manager:
                                    chapter: manga_api.Chapter) -> None:
         dm_channel = await user.create_dm()
         await dm_channel.send(
-            embed=embed_util.chapter_embed(manga, chapter),
+            embed=await embed_util.chapter_embed(manga, chapter),
             files=[parallel_downloads.discord_file_from_filename(filename) for filename in
                    embed_util.get_chapter_filenames(manga)]
         )

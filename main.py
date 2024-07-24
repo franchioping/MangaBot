@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 import embed_util
 import manager
 import manga_api
+from util import parallel_downloads
 
 mh = manga_api.MangaHandler()
 
@@ -32,16 +33,18 @@ async def first_command(interaction: discord.Interaction):
 
 async def render_manga_list_in_dm(interaction: discord.Interaction, manga_list: list[manga_api.Manga]):
     chanel = await interaction.user.create_dm()
+    await interaction.followup.send("Check your DM's")
 
     if len(manga_list) == 0:
         await chanel.send("No Manga in Here")
         return
 
-    list_msg = await interaction.followup.send(embed=embed_util.manga_list_embed(manga_list))
+    list_msg = await chanel.send(embed=embed_util.manga_list_embed(manga_list))
     view = embed_util.ListManga(manga_list, await man.get_user_mangas(interaction.user))
-    msg = await interaction.followup.send(view=view, embed=embed_util.manga_embed(manga_list, 0))
-    view.set_msg(msg)
-    await view.force_reload()
+    msg = await chanel.send(view=view, embed=await embed_util.manga_embed(manga_list, 0),
+                            files=[parallel_downloads.discord_file_from_filename(filename) for filename in
+                                   embed_util.get_chapter_filenames(manga_list[0])]
+                            )
 
     await view.wait()
 

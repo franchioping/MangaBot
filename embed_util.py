@@ -48,16 +48,7 @@ class ListManga(discord.ui.View):
         self.add_button.disabled = self.manga_list[self.index] in self.user_manga_list
         self.remove.disabled = self.manga_list[self.index] not in self.user_manga_list
 
-    async def force_reload(self):
-        await self.update_buttons()
 
-        self.msg = await self.msg.edit(
-            embed=manga_embed(self.manga_list, self.index),
-            attachments=[
-                parallel_downloads.discord_file_from_filename(self.thumbnail_files[self.index])
-            ],
-            view=self
-        )
 
     async def print_manga(self, interaction: discord.Interaction):
 
@@ -65,7 +56,13 @@ class ListManga(discord.ui.View):
 
         await self.update_buttons()
 
-        await self.force_reload()
+        await interaction.message.edit(
+                embed=await manga_embed(self.manga_list, self.index),
+            attachments=[
+                parallel_downloads.discord_file_from_filename(self.thumbnail_files[self.index])
+            ],
+            view=self
+        )
 
     @discord.ui.button(label=prev_label, style=discord.ButtonStyle.grey)
     async def previous(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -113,11 +110,11 @@ def gen_manga_files(manga_list: list[Manga]):
     return parallel_downloads.parallel_download(manga_list)
 
 
-def manga_embed(manga_list: list[Manga], index: int):
+async def manga_embed(manga_list: list[Manga], index: int):
     manga = manga_list[index]
     e = discord.Embed(title=f"({index + 1}\\{len(manga_list)}) {manga.get_title()}",
                       description=manga.get_description(), url=manga.get_url())
-    extension = manga.get_cover_art_extension()
+    extension = await manga.get_cover_art_extension()
     e.set_thumbnail(url=f"attachment://{manga.id}.{extension}")
 
     return e
@@ -138,14 +135,14 @@ def get_chapter_filenames(manga: Manga):
     return parallel_downloads.parallel_download([manga])
 
 
-def chapter_embed(manga: Manga, chapter: Chapter):
+async def chapter_embed(manga: Manga, chapter: Chapter):
     volume_info = f"Volume {chapter.get_volume()}" if chapter.get_volume() else ""
-    chapter_title = f"{chapter.get_title()}" if chapter.get_title() else ""
+    chapter_title = f"\"{chapter.get_title()}\" " if chapter.get_title() else ""
     e = discord.Embed(
-        title=f'"{manga.get_title()}" Chapter {chapter_title} Released!',
+        title=f'"{manga.get_title()}" Chapter {chapter_title}Released!',
         description=f"{volume_info} Chapter {chapter.get_number()} of {manga.get_title()} Released."
                     f"\nGo read it now!",
         url=chapter.get_url()
     )
-    e.set_thumbnail(url=f"attachment://{manga.id}.{manga.get_cover_art_extension()}")
+    e.set_thumbnail(url=f"attachment://{manga.id}.{await manga.get_cover_art_extension()}")
     return e

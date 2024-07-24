@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-import requests
+import util.async_requests as requests
 import asyncio
 
 
@@ -15,8 +15,6 @@ class Chapter:
         self.base_url = _base_url
         self.data = None
 
-        self.update_data()
-
     @classmethod
     async def init(cls, id: str , _base_url=base_url):
         self = cls(id, _base_url)
@@ -24,7 +22,7 @@ class Chapter:
         return self
 
     async def update_data(self):
-        r = requests.get(
+        r = await requests.get(
             f"{self.base_url}/chapter/{self.id}"
         )
         self.data = r.json()["data"]
@@ -72,7 +70,7 @@ class Manga:
 
 
     async def update_data(self):
-        r = requests.get(
+        r = await requests.get(
             f"{self.base_url}/manga/{self.id}"
         )
         self.data = r.json()["data"]
@@ -87,21 +85,14 @@ class Manga:
                 return "No Title"
 
     async def get_latest_chap(self) -> Chapter:
-        params = {
-            "manga": self.id,
-            "translatedLanguage": ["en"],
-            "order": {
-                "chapter": "desc"
-            }
-        }
-        r = requests.get(
+        r = await requests.get(
             f"{self.base_url}/chapter?manga={self.id}&originalLanguage%5B%5D=en&contentRating%5B%5D=safe"
             f"&contentRating%5B%5D=suggestive&contentRating%5B%5D=erotica&includeFutureUpdates=1&order%5Bchapter%5D"
             f"=desc",
 
         )
         if r.json()["total"] == 0:
-            r = requests.get(
+            r = await requests.get(
                 f"{self.base_url}/chapter?manga={self.id}&translatedLanguage%5B%5D=en&contentRating%5B%5D=safe"
                 f"&contentRating%5B%5D=suggestive&contentRating%5B%5D=erotica&includeFutureUpdates=1&order%5Bchapter"
                 f"%5D=desc",
@@ -109,26 +100,26 @@ class Manga:
 
         latest_chap = r.json()["data"][0]
 
-        return Chapter(latest_chap["id"])
+        return await Chapter.init(latest_chap["id"])
 
-    def get_cover_art_url(self):
+    async def get_cover_art_url(self):
         cover_art_id = ""
         for relation in self.data["relationships"]:
             if relation["type"] == "cover_art":
                 cover_art_id = relation["id"]
 
-        r = requests.get(f"{self.base_url}/cover/{cover_art_id}")
+        r = await requests.get(f"{self.base_url}/cover/{cover_art_id}")
         cover_fileName = r.json()["data"]["attributes"]["fileName"]
         cover_extension = cover_fileName.split(".")[1]
         return f"https://mangadex.org/covers/{self.id}/{cover_fileName}.256.{cover_extension}"
 
-    def get_cover_art_extension(self):
+    async def get_cover_art_extension(self):
         cover_art_id = ""
         for relation in self.data["relationships"]:
             if relation["type"] == "cover_art":
                 cover_art_id = relation["id"]
 
-        r = requests.get(f"{self.base_url}/cover/{cover_art_id}")
+        r = await requests.get(f"{self.base_url}/cover/{cover_art_id}")
         cover_fileName = r.json()["data"]["attributes"]["fileName"]
         cover_extension = cover_fileName.split(".")[1]
         return cover_extension
@@ -149,8 +140,8 @@ class Manga:
             "id": self.id,
             "title": self.get_title(),
             "url": self.get_url(),
-            "art_url": self.get_cover_art_url(),
-            "latest_chapter": str(asyncio.ensure_future(self.get_latest_chap()))
+            "art_url": asyncio.gather(self.get_cover_art_url()),
+            "latest_chapter": str(asyncio.gather(self.get_latest_chap()))
         })
 
     def __eq__(self, other):
@@ -162,7 +153,7 @@ class MangaHandler:
         self.base_url = base_url
 
     async def search(self, title: str) -> list[Manga]:
-        r = requests.get(
+        r = await requests.get(
             f"{self.base_url}/manga",
             params={"title": title}
         )
@@ -170,7 +161,7 @@ class MangaHandler:
         manga_list: list[Manga] = []
         for manga in data:
             manga_id = manga["id"]
-            manga_list.append(Manga(manga_id))
+            manga_list.append(await Manga.init(manga_id))
 
         return manga_list
 
