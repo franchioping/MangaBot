@@ -17,14 +17,14 @@ class Manager:
 
         self.load()
 
-    def get_user_mangas(self, user: discord.User) -> list[manga_api.Manga]:
+    async def get_user_mangas(self, user: discord.User) -> list[manga_api.Manga]:
         manga_ids = []
 
         for manga_id in self.manga.keys():
             if user.id in self.manga[manga_id]:
                 manga_ids.append(manga_id)
 
-        return [manga_api.Manga(manga_id) for manga_id in manga_ids]
+        return [await manga_api.Manga.init(manga_id) for manga_id in manga_ids]
 
     def add_user_to_manga(self, user: discord.User, manga: manga_api.Manga) -> None:
         if manga.id in self.manga.keys():
@@ -36,13 +36,15 @@ class Manager:
         if manga.id in self.manga.keys():
             if user.id in self.manga[manga.id]:
                 self.manga[manga.id].remove(user.id)
+                if len(self.manga[manga.id]) == 0:
+                    self.manga.pop(manga.id)
         else:
             self.manga[manga.id] = []
 
     async def update(self):
         for manga_id in self.manga.keys():
-            manga = manga_api.Manga(manga_id)
-            new_chap = self.check_for_new_chapter(manga)
+            manga = await manga_api.Manga.init(manga_id)
+            new_chap = await self.check_for_new_chapter(manga)
             if new_chap is not None:
                 users = self.manga[manga_id]
                 print(users)
@@ -50,14 +52,14 @@ class Manager:
                     await self.send_message_to_user(await self.client.fetch_user(userid), manga, new_chap)
         self.save()
 
-    def check_for_new_chapter(self, manga: manga_api.Manga) -> manga_api.Chapter | None:
-        latest_chap = manga.get_latest_chap()
+    async def check_for_new_chapter(self, manga: manga_api.Manga) -> manga_api.Chapter | None:
+        latest_chap = await manga.get_latest_chap()
         print("Comparing Chapters...")
 
         if manga.id not in self.chapters.keys():
             self.chapters[manga.id] = latest_chap.id
             return latest_chap
-        old_chap = manga_api.Chapter(self.chapters[manga.id])
+        old_chap = await manga_api.Chapter.init(self.chapters[manga.id])
 
         print(f"Latest Chap ID: {latest_chap.id}, Old Chap ID: {self.chapters[manga.id]}")
         print(f"Latest Chap: {latest_chap.get_volume()}:{latest_chap.get_number()}")

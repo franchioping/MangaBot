@@ -1,6 +1,8 @@
 import os
 from dotenv import load_dotenv
 import requests
+import asyncio
+
 
 load_dotenv()
 
@@ -15,7 +17,13 @@ class Chapter:
 
         self.update_data()
 
-    def update_data(self):
+    @classmethod
+    async def init(cls, id: str , _base_url=base_url):
+        self = cls(id, _base_url)
+        await self.update_data()
+        return self
+
+    async def update_data(self):
         r = requests.get(
             f"{self.base_url}/chapter/{self.id}"
         )
@@ -46,6 +54,9 @@ class Chapter:
             "chapter_url": self.get_url()
         })
 
+    def __eq__(self, other):
+        return self.id == other.id
+
 
 class Manga:
     def __init__(self, id: str, _base_url=base_url):
@@ -53,9 +64,14 @@ class Manga:
         self.base_url = _base_url
         self.data = None
 
-        self.update_data()
+    @classmethod
+    async def init(cls, id: str, _base_url=base_url):
+        self = cls(id, _base_url)
+        await self.update_data()
+        return self
 
-    def update_data(self):
+
+    async def update_data(self):
         r = requests.get(
             f"{self.base_url}/manga/{self.id}"
         )
@@ -70,7 +86,7 @@ class Manga:
             except KeyError:
                 return "No Title"
 
-    def get_latest_chap(self) -> Chapter:
+    async def get_latest_chap(self) -> Chapter:
         params = {
             "manga": self.id,
             "translatedLanguage": ["en"],
@@ -134,15 +150,18 @@ class Manga:
             "title": self.get_title(),
             "url": self.get_url(),
             "art_url": self.get_cover_art_url(),
-            "latest_chapter": str(self.get_latest_chap())
+            "latest_chapter": str(asyncio.ensure_future(self.get_latest_chap()))
         })
+
+    def __eq__(self, other):
+        return self.id == other.id
 
 
 class MangaHandler:
     def __init__(self):
         self.base_url = base_url
 
-    def search(self, title: str) -> list[Manga]:
+    async def search(self, title: str) -> list[Manga]:
         r = requests.get(
             f"{self.base_url}/manga",
             params={"title": title}
@@ -158,4 +177,3 @@ class MangaHandler:
 
 if __name__ == "__main__":
     mh = MangaHandler()
-    print(mh.search("Umineko no Naku Koro ni Episode 4: Alliance of the Golden Witch")[0].get_latest_chap().data)

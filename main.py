@@ -37,12 +37,11 @@ async def render_manga_list_in_dm(interaction: discord.Interaction, manga_list: 
         await chanel.send("No Manga in Here")
         return
 
-    view = embed_util.ListManga(manga_list)
-    msg = await chanel.send(view=view, embed=embed_util.manga_embed(manga_list[0]))
+    list_msg = await interaction.followup.send(embed=embed_util.manga_list_embed(manga_list))
+    view = embed_util.ListManga(manga_list, await man.get_user_mangas(interaction.user))
+    msg = await interaction.followup.send(view=view, embed=embed_util.manga_embed(manga_list, 0))
     view.set_msg(msg)
     await view.force_reload()
-
-    await interaction.followup.send("Query done, Check your DM's")
 
     await view.wait()
 
@@ -59,6 +58,7 @@ async def render_manga_list_in_dm(interaction: discord.Interaction, manga_list: 
             man.remove_user_from_manga(interaction.user, manga_api.Manga(manga_id))
 
     await msg.delete()
+    await list_msg.delete()
     await man.update()
 
 
@@ -73,7 +73,7 @@ async def search_command(
 ):
     await interaction.response.defer()
 
-    await render_manga_list_in_dm(interaction, mh.search(title))
+    await render_manga_list_in_dm(interaction, await mh.search(title))
 
 
 @tree.command(
@@ -83,7 +83,7 @@ async def search_command(
 async def list_command(interaction: discord.Interaction):
     await interaction.response.defer()
 
-    await render_manga_list_in_dm(interaction, man.get_user_mangas(interaction.user))
+    await render_manga_list_in_dm(interaction, await man.get_user_mangas(interaction.user))
 
 
 @tasks.loop(minutes=5)
