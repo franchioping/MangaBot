@@ -39,10 +39,10 @@ class Manager:
     def check_for_new_chapter(self, manga: manga_api.Manga) -> manga_api.Chapter | None:
         latest_chap = manga.get_latest_chap()
         if latest_chap not in self.chapters.keys():
-            self.chapters[manga.id] = latest_chap
+            self.chapters[manga.id] = latest_chap.id
             return latest_chap
-        if float(latest_chap.get_chapter_num()) > self.chapters[manga.id]:
-            self.chapters[manga.id] = latest_chap
+        if latest_chap.is_more_recent_than(manga_api.Chapter(self.chapters[manga.id])):
+            self.chapters[manga.id] = latest_chap.id
             return latest_chap
         else:
             return None

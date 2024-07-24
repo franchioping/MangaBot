@@ -79,9 +79,9 @@ def get_chapter_files(manga: Manga):
 def chapter_embed(manga: Manga, chapter: Chapter):
     e = discord.Embed(
         title=f'New "{manga.get_title()}" Chapter Released!',
-        description=f"Chapter {chapter.get_chapter_num()} of {manga.get_title()} Released."
+        description=f"Chapter {chapter.get_number()} of {manga.get_title()} Released."
                     f"\nGo read it now!",
-        url=chapter.get_chapter_url()
+        url=chapter.get_url()
     )
     e.set_thumbnail(url=f"attachment://{manga.id}.{manga.get_cover_art_extension()}")
     return e
