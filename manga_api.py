@@ -37,6 +37,7 @@ class Chapter:
 
     def __str__(self):
         return str({
+            "id": self.id,
             "chapter_vol": self.get_volume(),
             "chapter_num": self.get_number(),
             "chapter_url": self.get_url()
@@ -128,7 +129,10 @@ class Manga:
 
     def __str__(self):
         return str({
+            "id": self.id,
             "title": self.get_title(),
+            "url": self.get_url(),
+            "art_url": self.get_cover_art_url(),
             "latest_chapter": str(self.get_latest_chap())
         })
 
@@ -153,4 +157,4 @@ class MangaHandler:
 
 if __name__ == "__main__":
     mh = MangaHandler()
-    print(mh.search("Umineko no Naku Koro ni Episode 4: Alliance of the Golden Witch")[0].get_latest_chap())
+    print(mh.search("Umineko no Naku Koro ni Episode 4: Alliance of the Golden Witch")[0])

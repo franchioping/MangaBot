@@ -4,14 +4,24 @@ import json
 import embed_util
 import manga_api
 
-_manager = None
+import os.path
 
 
 class Manager:
-    def __init__(self, client):
+    def __init__(self, client, savefile: str = "manager.json"):
         self.client: discord.Client = client
         self.manga = {}
         self.chapters = {}
+        self.savefile = savefile
+
+    def get_user_mangas(self, user: discord.User) -> list[manga_api.Manga]:
+        manga_ids = []
+
+        for manga_id in self.manga.keys():
+            if user.id in self.manga[manga_id]:
+                manga_ids.append(manga_id)
+
+        return [manga_api.Manga(manga_id) for manga_id in manga_ids]
 
     def add_user_to_manga(self, user: discord.User, manga: manga_api.Manga) -> None:
         if manga.id in self.manga.keys():
@@ -53,8 +63,17 @@ class Manager:
         await dm_channel.send(embed=embed_util.chapter_embed(manga, chapter), files=embed_util.get_chapter_files(manga))
 
     def save(self):
-        with open("manager.json", "w") as f:
-            json.dump(self.to_dict(), f)
+        with open(self.savefile, "w") as f:
+            json.dump(self.to_dict(), f, indent=4)
+
+    def load(self):
+        if os.path.isfile(self.savefile):
+            with open(self.savefile, "r") as f:
+                self.from_dict(json.load(f))
+
+    def from_dict(self, data: dict):
+        self.manga = data["manga"]
+        self.chapters = data["chapters"]
 
     def to_dict(self):
         return {

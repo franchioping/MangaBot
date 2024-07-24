@@ -1,6 +1,7 @@
 import os
 import discord
 from discord import app_commands
+from discord.ext import tasks
 
 from dotenv import load_dotenv
 
@@ -29,22 +30,11 @@ async def first_command(interaction: discord.Interaction):
     await chanel.send("Hi")
 
 
-@tree.command(
-    name="search",
-    description="Search for manga to follow",
-    guild=discord.Object(id=1042133536926347324)
-)
-@app_commands.describe(title='Title of the manga to search for')
-async def search_command(
-        interaction: discord.Interaction,
-        title: str
-):
-
-
+async def render_manga_list_in_dm(interaction: discord.Interaction, manga_list: list[manga_api.Manga]):
     await interaction.response.send_message("Check your DM's")
-    chanel = await interaction.user.create_dm()
 
-    manga_list = mh.search(title)
+
+    chanel = await interaction.user.create_dm()
     view = embed_util.ListManga(manga_list)
     msg = await chanel.send(view=view, embed=embed_util.manga_embed(manga_list[0]))
     await view.force_reload(msg)
@@ -62,8 +52,36 @@ async def search_command(
             print(f"Userid {interaction.user.id} removed mangaid {manga_id}")
             man.remove_user_from_manga(interaction.user, manga_api.Manga(manga_id))
 
-
     await chanel.send("Done")
+    await man.update()
+
+@tree.command(
+    name="search",
+    description="Search for manga to follow",
+    guild=discord.Object(id=1042133536926347324)
+)
+@app_commands.describe(title='Title of the manga to search for')
+async def search_command(
+        interaction: discord.Interaction,
+        title: str
+):
+    await render_manga_list_in_dm(interaction, mh.search(title))
+
+
+
+@tree.command(
+    name="list",
+    description="List the manga you follow",
+    guild=discord.Object(id=1042133536926347324)
+)
+async def list_command(interaction: discord.Interaction):
+    await render_manga_list_in_dm(interaction, man.get_user_mangas(interaction.user))
+
+
+
+
+@tasks.loop(minutes=5)
+async def update_manga():
     await man.update()
 
 
