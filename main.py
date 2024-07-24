@@ -21,16 +21,6 @@ tree = app_commands.CommandTree(client)
 man = manager.Manager(client)
 
 
-@tree.command(
-    name="ping",
-    description="My first application Command",
-    guild=discord.Object(id=1042133536926347324)
-)
-async def first_command(interaction: discord.Interaction):
-    chanel = await interaction.user.create_dm()
-    await chanel.send("Hi")
-
-
 async def render_manga_list_in_dm(interaction: discord.Interaction, manga_list: list[manga_api.Manga]):
     chanel = await interaction.user.create_dm()
     await interaction.followup.send("Check your DM's")
@@ -70,6 +60,8 @@ async def render_manga_list_in_dm(interaction: discord.Interaction, manga_list: 
     description="Search for manga to follow",
 )
 @app_commands.describe(title='Title of the manga to search for')
+@app_commands.user_install()
+@discord.app_commands.guild_install()
 async def search_command(
         interaction: discord.Interaction,
         title: str
@@ -83,6 +75,8 @@ async def search_command(
     name="list",
     description="List the manga you follow",
 )
+@app_commands.user_install()
+@discord.app_commands.guild_install()
 async def list_command(interaction: discord.Interaction):
     await interaction.response.defer()
 

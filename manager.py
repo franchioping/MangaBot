@@ -38,6 +38,8 @@ class Manager:
                 self.manga[manga.id].remove(user.id)
                 if len(self.manga[manga.id]) == 0:
                     self.manga.pop(manga.id)
+                    if manga.id in self.chapters.keys():
+                        self.chapters.pop(manga.id)
         else:
             self.manga[manga.id] = []
 
@@ -95,6 +97,11 @@ class Manager:
         self.chapters = data["chapters"]
 
     def to_dict(self):
+        for manga_id in self.manga.keys():
+            if len(self.manga[manga_id]) == 0:
+                self.manga.pop(manga_id)
+                if manga_id in self.chapters.keys():
+                    self.chapters.pop(manga_id)
         return {
             "manga": self.manga,
             "chapters": self.chapters
