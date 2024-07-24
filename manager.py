@@ -5,6 +5,7 @@ import embed_util
 import manga_api
 
 import os.path
+from util import parallel_downloads
 
 
 class Manager:
@@ -33,7 +34,8 @@ class Manager:
 
     def remove_user_from_manga(self, user: discord.User, manga: manga_api.Manga) -> None:
         if manga.id in self.manga.keys():
-            self.manga[manga.id].remove(user.id)
+            if user.id in self.manga[manga.id]:
+                self.manga[manga.id].remove(user.id)
         else:
             self.manga[manga.id] = []
 
@@ -71,7 +73,11 @@ class Manager:
     async def send_message_to_user(self, user: discord.User, manga: manga_api.Manga,
                                    chapter: manga_api.Chapter) -> None:
         dm_channel = await user.create_dm()
-        await dm_channel.send(embed=embed_util.chapter_embed(manga, chapter), files=embed_util.get_chapter_files(manga))
+        await dm_channel.send(
+            embed=embed_util.chapter_embed(manga, chapter),
+            files=[parallel_downloads.discord_file_from_filename(filename) for filename in
+                   embed_util.get_chapter_filenames(manga)]
+        )
 
     def save(self):
         with open(self.savefile, "w") as f:

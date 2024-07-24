@@ -65,7 +65,6 @@ async def render_manga_list_in_dm(interaction: discord.Interaction, manga_list: 
 @tree.command(
     name="search",
     description="Search for manga to follow",
-    guild=discord.Object(id=1042133536926347324)
 )
 @app_commands.describe(title='Title of the manga to search for')
 async def search_command(
@@ -80,7 +79,6 @@ async def search_command(
 @tree.command(
     name="list",
     description="List the manga you follow",
-    guild=discord.Object(id=1042133536926347324)
 )
 async def list_command(interaction: discord.Interaction):
     await interaction.response.defer()
@@ -98,6 +96,7 @@ async def update_manga():
 @client.event
 async def on_ready():
     await tree.sync(guild=discord.Object(id=1042133536926347324))
+    await tree.sync()
     print("Ready!")
 
 

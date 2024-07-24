@@ -15,7 +15,7 @@ class ListManga(discord.ui.View):
         self.ret = []
         self.index = 0
         self.manga_list = manga_list
-        self.manga_files = gen_manga_files(self.manga_list)
+        self.thumbnail_files: list[str] = gen_manga_files(self.manga_list)
         self.comp = self.children
         self.prev: discord.Button = None
         self.next: discord.Button = None
@@ -33,8 +33,8 @@ class ListManga(discord.ui.View):
         self.msg = msg
 
     async def update_buttons(self):
-        self.prev.disabled = self.index != 0
-        self.next.disabled = self.index != len(self.manga_list) - 1
+        self.prev.disabled = self.index == 0
+        self.next.disabled = self.index == len(self.manga_list) - 1
 
         print(f"index: {self.index}, prev: {self.prev.disabled}, next {self.next.disabled}")
 
@@ -44,7 +44,9 @@ class ListManga(discord.ui.View):
 
         self.msg = await self.msg.edit(
             embed=manga_embed(self.manga_list[self.index]),
-            attachments=[self.manga_files[self.index]],
+            attachments=[
+                parallel_downloads.discord_file_from_filename(self.thumbnail_files[self.index])
+            ],
             view=self
         )
 
@@ -96,6 +98,14 @@ def gen_manga_files(manga_list: list[Manga]):
     return parallel_downloads.parallel_download(manga_list)
 
 
+def manga_list_embed(manga_list: list[Manga], index: int):
+    manga = manga_list[index]
+    e = discord.Embed(title=f"({index+1}\\{len(manga_list)}) {manga.get_title()}", description=manga.get_description(), url=manga.get_url())
+    extension = manga.get_cover_art_extension()
+    e.set_thumbnail(url=f"attachment://{manga.id}.{extension}")
+
+    return e
+
 def manga_embed(manga: Manga):
     e = discord.Embed(title=manga.get_title(), description=manga.get_description(), url=manga.get_url())
     extension = manga.get_cover_art_extension()
@@ -104,8 +114,9 @@ def manga_embed(manga: Manga):
     return e
 
 
-def get_chapter_files(manga: Manga):
+def get_chapter_filenames(manga: Manga):
     return parallel_downloads.parallel_download([manga])
+
 
 
 def chapter_embed(manga: Manga, chapter: Chapter):
