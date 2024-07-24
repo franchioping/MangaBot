@@ -31,7 +31,6 @@ async def first_command(interaction: discord.Interaction):
 
 
 async def render_manga_list_in_dm(interaction: discord.Interaction, manga_list: list[manga_api.Manga]):
-    await interaction.followup.send("Search done, Check your DM's")
     chanel = await interaction.user.create_dm()
 
     if len(manga_list) == 0:
@@ -40,7 +39,11 @@ async def render_manga_list_in_dm(interaction: discord.Interaction, manga_list: 
 
     view = embed_util.ListManga(manga_list)
     msg = await chanel.send(view=view, embed=embed_util.manga_embed(manga_list[0]))
-    await view.force_reload(msg)
+    view.set_msg(msg)
+    await view.force_reload()
+
+    await interaction.followup.send("Query done, Check your DM's")
+
     await view.wait()
 
     print("Done.. Checking Returns")

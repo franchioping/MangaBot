@@ -5,6 +5,9 @@ import os.path
 import requests
 from util import parallel_downloads
 
+prev_label = "Prev"
+next_label = "Next"
+
 
 class ListManga(discord.ui.View):
     def __init__(self, manga_list: list[Manga]):
@@ -13,30 +16,58 @@ class ListManga(discord.ui.View):
         self.index = 0
         self.manga_list = manga_list
         self.manga_files = gen_manga_files(self.manga_list)
+        self.comp = self.children
+        self.prev: discord.Button = None
+        self.next: discord.Button = None
+        for comp in self.comp:
+            if comp.type.name == "button":
+                button: discord.Button = comp
+                if button.label == prev_label:
+                    self.prev = button
+                if button.label == next_label:
+                    self.next = button
+        self.msg: discord.Message = None
+        print(self.manga_list)
 
-    async def force_reload(self, msg: discord.Message):
-        await msg.edit(
+    def set_msg(self, msg):
+        self.msg = msg
+
+    async def update_buttons(self):
+        self.prev.disabled = self.index != 0
+        self.next.disabled = self.index != len(self.manga_list) - 1
+
+        print(f"index: {self.index}, prev: {self.prev.disabled}, next {self.next.disabled}")
+
+
+    async def force_reload(self):
+        await self.update_buttons()
+
+        self.msg = await self.msg.edit(
             embed=manga_embed(self.manga_list[self.index]),
-            attachments=[self.manga_files[self.index]]
+            attachments=[self.manga_files[self.index]],
+            view=self
         )
 
     async def print_manga(self, interaction: discord.Interaction):
+
         await interaction.response.defer()
-        await interaction.message.edit(
-            embed=manga_embed(self.manga_list[self.index]),
-            attachments=[self.manga_files[self.index]]
-        )
 
+        await self.update_buttons()
 
-    @discord.ui.button(label='Prev', style=discord.ButtonStyle.grey)
+        await self.force_reload()
+
+    @discord.ui.button(label=prev_label, style=discord.ButtonStyle.grey)
     async def previous(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.prev = button
         if self.index > 0:
             self.index -= 1
+            print("cant go anymore back")
 
         await self.print_manga(interaction)
 
-    @discord.ui.button(label='Next', style=discord.ButtonStyle.grey)
+    @discord.ui.button(label=next_label, style=discord.ButtonStyle.grey)
     async def next(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.next = button
         if self.index < len(self.manga_list) - 1:
             self.index += 1
 
